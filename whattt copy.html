@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Healthify - Healthcare Platform</title>
+  <meta name="description" content="Healthify: A modern, accessible healthcare chat platform.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #4299e1 0%, #38b2ac 100%);
+      --danger-gradient: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+      --border-radius: 16px;
+      --box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+      --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --color-bg: #f0f4f8;
+      --color-bg-alt: #e2e8f0;
+      --color-text: #2d3748;
+      --color-link: #4299e1;
+      --color-link-hover: #2b6cb0;
+      --color-danger: #c53030;
+      --color-success: #22543d;
+      --color-error-bg: #fed7d7;
+      --color-success-bg: #c6f6d5;
+      --color-form-bg: #fff;
+      --color-form-border: #e2e8f0;
+      --color-form-focus: #4299e1;
+      --color-form-shadow: rgba(66,153,225,0.1);
+      --color-demo-bg: #bee3f8;
+      --color-demo-text: #2c5282;
+      --color-progress-bg: #e2e8f0;
+      --color-progress-complete: #48bb78;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-main);
+      background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      color: var(--color-text);
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image:
+        radial-gradient(circle at 20% 30%, rgba(134, 201, 175, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(134, 201, 175, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 50% 20%, rgba(134, 201, 175, 0.08) 0%, transparent 50%);
+      z-index: -2;
+    }
+    .cross-bg {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: -1; overflow: hidden;
+    }
+    .cross { position: absolute; background: rgba(134, 201, 175, 0.13); animation: float3d 8s ease-in-out infinite; }
+    .cross.large { width: 60px; height: 60px; clip-path: polygon(40% 0%, 60% 0%, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0% 60%, 0% 40%, 40% 40%); }
+    .cross.medium { width: 40px; height: 40px; clip-path: polygon(40% 0%, 60% 0%, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0% 60%, 0% 40%, 40% 40%); }
+    .cross.small { width: 20px; height: 20px; clip-path: polygon(40% 0%, 60% 0%, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0% 60%, 0% 40%, 40% 40%); }
+    @keyframes float3d {
+      0%,100% { transform: translateY(0) rotate3d(1,1,0,0deg);}
+      50% { transform: translateY(-20px) rotate3d(1,1,0,10deg);}
+    }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 40px; background: rgba(255,255,255,0.85); backdrop-filter: blur(14px) saturate(180%);
+      box-shadow: 0 2px 24px rgba(0,0,0,0.07); position: relative; z-index: 100;
+      border-radius: 0 0 32px 32px;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; font-size: 2rem; font-weight: 700; color: var(--color-text); }
+    .logo-icon { width: 50px; height: 50px; background: var(--primary-gradient); border-radius: var(--border-radius); box-shadow: 0 4px 24px rgba(66,153,225,0.17); position: relative; }
+    .logo-icon::before { content: ''; width: 24px; height: 24px; background: white; clip-path: polygon(40% 0%, 60% 0%, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0% 60%, 0% 40%, 40% 40%); display: block; margin: auto; }
+    nav[aria-label="Main navigation"] { display: flex; align-items: center; gap: 20px; }
+    .menu-btn { background: none; border: none; cursor: pointer; padding: 8px; border-radius: 8px; transition: background-color .3s; min-width:44px; min-height:44px;}
+    .menu-btn:focus { outline: 2px solid var(--color-form-focus); }
+    .menu-btn:hover, .menu-btn:active { background: rgba(134,201,175,0.1); }
+    .menu-btn span { display: block; width: 25px; height: 3px; background: #4a5568; margin: 5px 0; border-radius: 2px; transition: .3s; }
+    .user-info { display: none; align-items: center; gap: 12px; color: #4a5568; font-size: 14px; }
+    .user-info.show { display: flex; }
+    .logout-btn {
+      background: var(--danger-gradient);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(229,62,62,0.17);
+      transition: all .3s;
+      min-width:44px; min-height:44px;
+    }
+    .logout-btn:focus { outline: 2px solid var(--color-form-focus); }
+    .logout-btn:hover, .logout-btn:active { transform: translateY(-1px) scale(1.05); box-shadow: 0 4px 16px rgba(229,62,62,0.22); }
+    main { max-width: 1200px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; perspective: 1200px; }
+    .screen { display: none; animation: fadeIn .5s cubic-bezier(.77,0,.18,1); }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+    .login-container { display: flex; justify-content: center; align-items: center; min-height: 70vh; }
+    .login-form, .chat-container, .patient-form {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(16px) saturate(180%);
+      border-radius: 24px;
+      box-shadow: var(--box-shadow), 0 16px 40px rgba(66,153,225,0.13);
+      border: 2px solid;
+      border-image: linear-gradient(135deg, #4299e1 0%, #38b2ac 100%);
+      border-image-slice: 1;
+      transition: box-shadow 0.3s, transform 0.3s;
+    }
+    .login-form:hover, .patient-form:hover, .chat-container:hover {
+      box-shadow: 0 16px 40px rgba(66,153,225,0.25), 0 2px 8px rgba(0,0,0,0.08);
+      transform: rotateY(4deg) scale(1.02);
+    }
+    .login-form { padding: 40px; width: 100%; max-width: 400px; text-align: center; }
+    .user-avatar { width: 80px; height: 80px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; box-shadow: 0 8px 25px rgba(66,153,225,0.3); }
+    .user-avatar::before { content: '👤'; font-size: 32px; color: white; }
+    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group label { display: block; margin-bottom: 8px; color: #4a5568; font-weight: 500; }
+    .form-input {
+      width: 100%; padding: 15px 20px; border: 2px solid var(--color-form-border);
+      border-radius: 16px; font-size: 16px; transition: all .3s;
+      background: rgba(255,255,255,0.95); color: var(--color-text);
+      box-shadow: 0 2px 10px rgba(66,153,225,0.08);
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-form-focus);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(66,153,225,0.20), 0 2px 10px rgba(66,153,225,0.08);
+      transform: scale(1.03);
+    }
+    .forgot-password { text-align: center; margin-top: 15px; }
+    .forgot-password a { color: var(--color-link); text-decoration: none; font-size: 14px; transition: color .3s; }
+    .forgot-password a:hover, .forgot-password a:focus { color: var(--color-link-hover); outline: none; }
+    .btn {
+      width: 100%; padding: 15px;
+      background: linear-gradient(145deg, #48c6ef 0%, #6f86d6 100%);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      margin-top: 20px;
+      box-shadow: 0 4px 20px rgba(72,198,239,0.3), 0 1.5px 0 #fff inset;
+      min-width:44px; min-height:44px;
+    }
+    .btn:focus { outline: 2px solid var(--color-form-focus); }
+    .btn:hover, .btn:active { transform: translateY(-2px) scale(1.04); box-shadow: 0 6px 24px rgba(66,153,225,0.32);}
+    .btn:active { transform: translateY(2px) scale(0.98); box-shadow: 0 2px 8px rgba(72,198,239,0.2);}
+    .btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .error-message {
+      background: var(--color-error-bg); color: var(--color-danger);
+      padding: 10px 15px; border-radius: 8px; margin-bottom: 20px;
+      font-size: 14px; display: none;
+    }
+    .error-message.show { display: block; }
+    .success-message {
+      background: var(--color-success-bg); color: var(--color-success);
+      padding: 10px 15px; border-radius: 8px; margin-bottom: 20px;
+      font-size: 14px; display: none;
+    }
+    .success-message.show { display: block; }
+    .chat-container { display: flex; flex-direction: column; height: 70vh; overflow: hidden;}
+    .chat-header { padding: 20px 30px; border-bottom: 1px solid var(--color-form-border); background: rgba(248,250,252,0.8); display: flex; justify-content: space-between; align-items: center; }
+    .chat-title { font-size: 18px; font-weight: 600; color: var(--color-text); }
+    .patient-info-summary { font-size: 14px; color: #4a5568; }
+    .chat-messages { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+    .message { max-width: 70%; padding: 15px 20px; border-radius: 20px; position: relative; animation: slideIn .3s ease-out; word-break:break-word;}
+    .message.bot {
+      background: linear-gradient(135deg, #4299e1 0%, #38b2ac 100%);
+      box-shadow: 0 4px 16px rgba(66,153,225,0.25), 0 1.5px 0 #fff inset;
+      color: #fff;
+      border-radius: 20px 20px 4px 20px;
+      align-self: flex-start;
+    }
+    .message.user {
+      background: linear-gradient(135deg, #fff 0%, #e2e8f0 100%);
+      box-shadow: 0 4px 16px rgba(66,153,225,0.08);
+      color: #2d3748;
+      border-radius: 20px 20px 20px 4px;
+      align-self: flex-end;
+      border: 1px solid var(--color-form-border);
+    }
+    @keyframes slideIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+    .chat-input-container { padding: 20px 30px; border-top: 1px solid var(--color-form-border); background: rgba(248,250,252,0.8); }
+    .chat-input-wrapper { display: flex; gap: 12px; align-items: center; background: white; padding: 12px 20px; border-radius: 25px; border: 2px solid var(--color-form-border); transition: border-color .3s; }
+    .chat-input-wrapper:focus-within { border-color: var(--color-form-focus); box-shadow: 0 0 0 3px var(--color-form-shadow); }
+    .chat-input { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
+    .send-btn {
+      background: linear-gradient(145deg, #48c6ef 0%, #6f86d6 100%);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 44px; height: 44px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .3s;
+      box-shadow: 0 2px 8px rgba(66,153,225,0.3);
+      font-size: 1.3em;
+    }
+    .send-btn:focus { outline: 2px solid var(--color-form-focus); }
+    .send-btn:hover, .send-btn:active { transform: scale(1.09); box-shadow: 0 4px 16px rgba(66,153,225,0.4); }
+    /* Patient Details Screen */
+    .patient-form { padding: 40px; max-width: 800px; margin: 0 auto; }
+    .form-title { text-align: center; font-size: 28px; font-weight: 700; color: var(--color-text); margin-bottom: 40px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 30px; }
+    .progress-indicator { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+    .progress-step { width: 40px; height: 40px; border-radius: 50%; background: var(--color-progress-bg); display: flex; align-items: center; justify-content: center; color: #a0aec0; font-weight: 600; position: relative; }
+    .progress-step.active { background: var(--primary-gradient); color: white; }
+    .progress-step.completed { background: var(--color-progress-complete); color: white; }
+    .progress-step::after { content: ''; position: absolute; right: -22px; top: 50%; transform: translateY(-50%); width: 15px; height: 2px; background: var(--color-progress-bg); }
+    .progress-step:last-child::after { display: none; }
+    .progress-step.completed::after { background: var(--color-progress-complete); }
+    .demo-info { background: var(--color-demo-bg); color: var(--color-demo-text); padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; text-align: center; }
+    .demo-info strong { display: block; margin-bottom: 5px; }
+    /* Focus styles for accessibility */
+    a:focus, button:focus, input:focus, select:focus {
+      outline: 2px solid var(--color-form-focus);
+      outline-offset: 2px;
+    }
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border: 3px solid #e2e8f0;
+      border-top: 3px solid #4299e1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Reduced motion for accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    /* Responsive */
+    @media (max-width: 700px) {
+      header { flex-direction: column; padding: 16px 10px; gap: 10px; }
+      main { padding: 10px; }
+      .login-form, .chat-container, .patient-form { padding: 18px; }
+      .chat-header, .chat-input-container { padding: 10px 10px; }
+      .chat-messages { padding: 10px; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Cross Background -->
+  <div class="cross-bg" aria-hidden="true">
+    <div class="cross large" style="top: 10%; left: 5%;"></div>
+    <div class="cross medium" style="top: 60%; left: 80%;"></div>
+    <div class="cross small" style="top: 80%; left: 30%;"></div>
+  </div>
+  <!-- Header -->
+  <header role="banner">
+    <div class="logo" aria-label="Healthify Home">
+      <span class="logo-icon"></span>
+      <h1 style="font-size:inherit; font-weight:inherit; margin:0;">Healthify</h1>
+    </div>
+    <nav aria-label="Main navigation">
+      <button class="menu-btn" title="Menu" aria-label="Open menu" tabindex="0">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="user-info" id="user-info" aria-live="polite">
+        <span id="user-name"></span>
+        <button class="logout-btn" id="logout-btn" type="button">Logout</button>
+      </div>
+    </nav>
+  </header>
+  <main id="main-content" role="main">
+    <!-- Login Screen -->
+    <section class="screen active" id="login-screen" aria-label="Login Section">
+      <div class="login-container">
+        <form class="login-form" id="login-form" aria-label="Login Form" autocomplete="on">
+          <div class="user-avatar" aria-hidden="true"></div>
+          <div class="error-message" id="login-error" role="alert" aria-live="assertive"></div>
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input class="form-input" type="text" id="username" name="username" required autocomplete="username" aria-required="true" />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input class="form-input" type="password" id="password" name="password" required autocomplete="current-password" aria-required="true" />
+          </div>
+          <button class="btn" type="submit" id="login-btn">Login</button>
+          <div class="forgot-password">
+            <a href="#" tabindex="0">Forgot password?</a>
+          </div>
+          <div class="demo-info" aria-live="polite">
+            <strong>Demo Credentials:</strong>
+            Username: <code>demo</code> <br>
+            Password: <code>demo</code>
+          </div>
+        </form>
+      </div>
+    </section>
+    <!-- Patient Details Screen -->
+    <section class="screen" id="patient-details-screen" aria-label="Patient Details Section">
+      <form class="patient-form" id="patient-form" aria-label="Patient Details Form" autocomplete="on">
+        <h2 class="form-title">Patient Details</h2>
+        <!-- Progress Indicator -->
+        <div class="progress-indicator" aria-label="Progress">
+          <div class="progress-step active" aria-current="step">1</div>
+          <div class="progress-step">2</div>
+          <div class="progress-step">3</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" class="form-input" required aria-required="true" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob" class="form-input" required aria-required="true" autocomplete="bday" />
+          </div>
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender" class="form-input" required aria-required="true">
+              <option value="">Select</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" class="form-input" required aria-required="true" pattern="^\d{10,15}$" autocomplete="tel" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" class="form-input" required aria-required="true" autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" class="form-input" required aria-required="true" autocomplete="street-address" />
+          </div>
+        </div>
+        <div class="demo-info" aria-live="polite">
+          <strong>Demo Information:</strong>
+          This is a demo form, so no data is actually submitted.
+        </div>
+        <div style="text-align:right;">
+          <button class="btn" type="button" id="back-to-login-btn" style="width:auto; padding:10px 20px; margin-right:10px;">Back</button>
+          <button class="btn" type="submit" id="continue-btn" style="width:auto; padding:10px 20px;">Continue to Chat</button>
+        </div>
+      </form>
+    </section>
+    <!-- Chat Screen -->
+    <section class="screen" id="chat-screen" aria-label="Chat Section">
+      <div class="chat-container">
+        <div class="chat-header">
+          <span class="chat-title">Health Assistant Chat</span>
+          <span class="patient-info-summary" id="patient-summary"></span>
+        </div>
+        <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+        <form class="chat-input-container" id="chat-form" autocomplete="off" aria-label="Chat Form">
+          <div class="chat-input-wrapper">
+            <input class="chat-input" id="chat-input" type="text" placeholder="Type your message..." autocomplete="off" aria-label="Type your message" required />
+            <button class="send-btn" type="submit" aria-label="Send Message">
+              <span aria-hidden="true">&#9658;</span>
+            </button>
+          </div>
+        </form>
+        <div id="chat-loading" style="display:none; text-align:center; padding:10px;">
+          <span class="spinner" aria-label="Loading"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    // Utility: Show/hide screens
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove('active');
+        s.setAttribute('aria-hidden', 'true');
+      });
+      const screen = document.getElementById(id);
+      screen.classList.add('active');
+      screen.setAttribute('aria-hidden', 'false');
+    }
+    // Accessibility: focus first input on screen show
+    function focusFirstInput(screenId) {
+      const screen = document.getElementById(screenId);
+      const input = screen.querySelector('input, select, textarea');
+      if (input) input.focus();
+    }
+    // Demo login credentials
+    const DEMO_USER = 'demo';
+    const DEMO_PASS = 'demo';
+    // Login logic
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorDiv = document.getElementById('login-error');
+      errorDiv.classList.remove('show');
+      errorDiv.textContent = '';
+      if (!username || !password) {
+        errorDiv.textContent = 'Please enter both username and password.';
+        errorDiv.classList.add('show');
+        document.getElementById('username').focus();
+        return;
+      }
+      if (username === DEMO_USER && password === DEMO_PASS) {
+        document.getElementById('user-info').classList.add('show');
+        document.getElementById('user-name').textContent = username;
+        showScreen('patient-details-screen');
+        focusFirstInput('patient-details-screen');
+      } else {
+        errorDiv.textContent = 'Invalid credentials. Try demo/demo.';
+        errorDiv.classList.add('show');
+        document.getElementById('username').focus();
+      }
+    });
+    // Logout logic
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      document.getElementById('user-info').classList.remove('show');
+      showScreen('login-screen');
+      focusFirstInput('login-screen');
+      document.getElementById('login-form').reset();
+    });
+    // Menu button (for future expansion)
+    document.querySelector('.menu-btn').addEventListener('click', function() {
+      alert('Menu button clicked! (Add navigation here)');
+    });
+    // Patient form validation and navigation
+    document.getElementById('patient-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Simple validation for phone
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      if (!/^\d{10,15}$/.test(phone)) {
+        alert('Please enter a valid phone number (10-15 digits).');
+        document.getElementById('phone').focus();
+        return;
+      }
+      if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+        alert('Please enter a valid email address.');
+        document.getElementById('email').focus();
+        return;
+      }
+      // Show patient summary in chat
+      const name = document.getElementById('name').value.trim();
+      const dob = document.getElementById('dob').value;
+      const gender = document.getElementById('gender').value;
+      document.getElementById('patient-summary').textContent =
+        `Patient: ${name} | DOB: ${dob} | Gender: ${gender}`;
+      showScreen('chat-screen');
+      focusFirstInput('chat-screen');
+    });
+    // Back to login from patient details
+    document.getElementById('back-to-login-btn').addEventListener('click', function() {
+      showScreen('login-screen');
+      focusFirstInput('login-screen');
+      document.getElementById('patient-form').reset();
+    });
+    // Chat logic (demo) with loading spinner and XSS prevention
+    // Chat logic - FIXED VERSION
+// Chat logic - FIXED VERSION
+const chatForm = document.getElementById('chat-form');
+const chatMessages = document.getElementById('chat-messages');
+const chatLoading = document.getElementById('chat-loading');
+
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, function(m) {
+    return ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m];
+  });
+}
+
+// SINGLE event listener for chat form submission
+chatForm.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  // Add user message to chat
+  addMessage('user', text);
+  input.value = '';
+  chatLoading.style.display = 'block';
+
+  try {
+    console.log("Sending message to backend:", text);
+    
+    const response = await fetch("http://127.0.0.1:5000/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({ message: text })
+    });
+
+    console.log("Response status:", response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Response data:", data);
+    
+    const reply = data.reply || "Sorry, I couldn't understand your query.";
+    addMessage('bot', reply);
+    
+  } catch (error) {
+    console.error("Chat error:", error);
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      addMessage('bot', "Unable to connect to the server. Please make sure the backend is running on http://127.0.0.1:5000");
+    } else {
+      addMessage('bot', `Error: ${error.message}`);
+    }
+  } finally {
+    chatLoading.style.display = 'none';
+  }
+});
+
+// Simple markdown parser for bot responses
+function parseMarkdown(text) {
+  return text
+    // Bold text **text** or __text__
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.*?)__/g, '<strong>$1</strong>')
+    
+    // Italic text *text* or _text_
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/_(.*?)_/g, '<em>$1</em>')
+    
+    // Headers
+    .replace(/^### (.*$)/gm, '<h3 style="margin: 10px 0 5px 0; font-size: 1.1em;">$1</h3>')
+    .replace(/^## (.*$)/gm, '<h2 style="margin: 12px 0 6px 0; font-size: 1.2em;">$1</h2>')
+    .replace(/^# (.*$)/gm, '<h1 style="margin: 15px 0 8px 0; font-size: 1.3em;">$1</h1>')
+    
+    // Lists - convert bullet points
+    .replace(/^\* (.*$)/gm, '<li style="margin-left: 20px;">$1</li>')
+    .replace(/^- (.*$)/gm, '<li style="margin-left: 20px;">$1</li>')
+    .replace(/^\+ (.*$)/gm, '<li style="margin-left: 20px;">$1</li>')
+    
+    // Numbered lists
+    .replace(/^\d+\. (.*$)/gm, '<li style="margin-left: 20px; list-style-type: decimal;">$1</li>')
+    
+    // Line breaks - convert double newlines to paragraphs
+    .replace(/\n\n/g, '</p><p style="margin: 8px 0;">')
+    .replace(/\n/g, '<br>')
+    
+    // Code blocks `code`
+    .replace(/`([^`]+)`/g, '<code style="background: rgba(255,255,255,0.2); padding: 2px 4px; border-radius: 3px; font-family: monospace;">$1</code>')
+    
+    // Wrap content in paragraph if it doesn't start with a header
+    .replace(/^(?!<h[1-6]|<li)/gm, '<p style="margin: 8px 0;">');
+}
+
+function addMessage(sender, text) {
+  const msg = document.createElement('div');
+  msg.className = 'message ' + sender;
+  
+  if (sender === 'bot') {
+    // Parse markdown for bot messages
+    msg.innerHTML = parseMarkdown(text);
+  } else {
+    // Escape HTML for user messages
+    msg.innerHTML = escapeHTML(text);
+  }
+  
+  chatMessages.appendChild(msg);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+    // Accessibility: Focus first input on page load
+    window.onload = () => focusFirstInput('login-screen');
+    // PWA: Register service worker if available
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+      });
+    }
+  </script>
+</body>
+</html>
